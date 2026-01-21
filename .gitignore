@@ -1,0 +1,17 @@
+node_modules/
+**/node_modules/
+
+dist/
+**/dist/
+
+data/
+*.db
+*.db-*
+
+config/config.json
+
+coverage/
+
+.DS_Store
+.env
+

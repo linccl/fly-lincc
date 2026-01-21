@@ -1,0 +1,18 @@
+{
+  "name": "fly-lincc",
+  "private": true,
+  "workspaces": [
+    "server",
+    "web"
+  ],
+  "scripts": {
+    "dev": "concurrently -n server,web \"npm run dev -w @fly/server\" \"npm run dev -w @fly/web\"",
+    "build": "npm run build -w @fly/web && npm run build -w @fly/server",
+    "start": "npm run start -w @fly/server",
+    "set-password": "node scripts/set-password.mjs",
+    "test": "npm run test -w @fly/server && npm run test -w @fly/web"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0"
+  }
+}

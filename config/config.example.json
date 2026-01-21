@@ -1,0 +1,12 @@
+{
+  "host": "0.0.0.0",
+  "port": 3000,
+  "portFallback": { "enabled": true, "maxAttempts": 20 },
+  "database": { "path": "./data/app.db" },
+  "auth": {
+    "passwordHash": "",
+    "sessionSecret": "",
+    "session": { "cookieName": "sd_session", "ttlDays": 30 }
+  }
+}
+

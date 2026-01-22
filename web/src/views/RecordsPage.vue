@@ -1,9 +1,12 @@
 <template>
   <n-space vertical size="large">
     <n-card>
-      <n-space justify="space-between" align="center">
+      <n-tabs v-model:value="activeTab" type="line" @update:value="onTabChange">
+        <n-tab v-for="key in rangeKeys" :key="key" :name="key">{{ rangeLabels[key] }}</n-tab>
+      </n-tabs>
+      <n-space justify="space-between" align="center" style="margin-top: 12px">
         <n-space>
-          <n-date-picker v-model:value="range" type="daterange" clearable />
+          <n-date-picker v-model:value="range" type="daterange" clearable @update:value="onRangeChange" />
           <n-button :loading="loading" @click="load">刷新</n-button>
         </n-space>
         <n-button type="primary" @click="openCreate">新增</n-button>
@@ -71,6 +74,8 @@ import {
   NInput,
   NModal,
   NSpace,
+  NTab,
+  NTabs,
   useDialog,
   useMessage,
   type DataTableColumns,
@@ -78,6 +83,7 @@ import {
 } from "naive-ui";
 
 import { api } from "../util/api";
+import { type RangeKey, rangeKeys, rangeLabels, getRange, startOfDay, addDays } from "../util/dateRange";
 
 type RecordItem = {
   id: number;
@@ -107,6 +113,7 @@ const pageSize = ref(20);
 const total = ref(0);
 const items = ref<RecordItem[]>([]);
 const range = ref<[number, number] | null>(null);
+const activeTab = ref<RangeKey | null>("thisWeek");
 
 const showEditor = ref(false);
 const editId = ref<number | null>(null);
@@ -171,12 +178,22 @@ const columns: DataTableColumns<RecordItem> = [
 ];
 
 onMounted(async () => {
-  const now = new Date();
-  const start = startOfDay(addDays(now, -6)).getTime();
-  const endExclusive = startOfDay(addDays(now, 1)).getTime();
-  range.value = [start, endExclusive - 1];
+  range.value = getRange("thisWeek");
   await load();
 });
+
+function onTabChange(key: RangeKey) {
+  activeTab.value = key;
+  range.value = getRange(key);
+  page.value = 1;
+  load();
+}
+
+function onRangeChange() {
+  activeTab.value = null;
+  page.value = 1;
+  load();
+}
 
 function toFromTo() {
   if (!range.value) return {};
@@ -312,18 +329,6 @@ function formatDurationMinutes(startIso: string, endIso: string) {
 
 function pad2(n: number) {
   return String(n).padStart(2, "0");
-}
-
-function startOfDay(d: Date) {
-  const x = new Date(d);
-  x.setHours(0, 0, 0, 0);
-  return x;
-}
-
-function addDays(d: Date, days: number) {
-  const x = new Date(d);
-  x.setDate(x.getDate() + days);
-  return x;
 }
 </script>
 

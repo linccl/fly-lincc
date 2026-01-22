@@ -1,9 +1,12 @@
 <template>
   <n-space vertical size="large">
     <n-card>
-      <n-space align="center" justify="space-between">
+      <n-tabs v-model:value="activeTab" type="line" @update:value="onTabChange">
+        <n-tab v-for="key in rangeKeys" :key="key" :name="key">{{ rangeLabels[key] }}</n-tab>
+      </n-tabs>
+      <n-space align="center" justify="space-between" style="margin-top: 12px">
         <n-space>
-          <n-date-picker v-model:value="range" type="daterange" clearable />
+          <n-date-picker v-model:value="range" type="daterange" clearable @update:value="onRangeChange" />
           <n-button :loading="loading" @click="load">刷新</n-button>
         </n-space>
         <n-space>
@@ -48,11 +51,14 @@ import {
   NGrid,
   NSpace,
   NStatistic,
+  NTab,
+  NTabs,
   useMessage,
   type DataTableColumns
 } from "naive-ui";
 
 import { api } from "../util/api";
+import { type RangeKey, rangeKeys, rangeLabels, getRange, startOfDay, addDays } from "../util/dateRange";
 
 type RecordItem = {
   id: number;
@@ -78,14 +84,23 @@ const message = useMessage();
 const loading = ref(false);
 const range = ref<[number, number] | null>(null);
 const records = ref<RecordItem[]>([]);
+const activeTab = ref<RangeKey | null>("thisWeek");
 
 onMounted(async () => {
-  const now = new Date();
-  const start = startOfDay(addDays(now, -6)).getTime();
-  const endExclusive = startOfDay(addDays(now, 1)).getTime();
-  range.value = [start, endExclusive - 1];
+  range.value = getRange("thisWeek");
   await load();
 });
+
+function onTabChange(key: RangeKey) {
+  activeTab.value = key;
+  range.value = getRange(key);
+  load();
+}
+
+function onRangeChange() {
+  activeTab.value = null;
+  load();
+}
 
 const byDay = computed<DayRow[]>(() => {
   const map = new Map<string, { count: number; durationMinutes: number }>();
@@ -208,18 +223,6 @@ function formatYmdLocal(iso: string) {
 
 function pad2(n: number) {
   return String(n).padStart(2, "0");
-}
-
-function startOfDay(d: Date) {
-  const x = new Date(d);
-  x.setHours(0, 0, 0, 0);
-  return x;
-}
-
-function addDays(d: Date, days: number) {
-  const x = new Date(d);
-  x.setDate(x.getDate() + days);
-  return x;
 }
 </script>
 
